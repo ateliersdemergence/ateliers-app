@@ -91,12 +91,14 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
   }
 
   const price = atelier.price ?? 25
+  // Collaborateurs (entreprises partenaires) et admins s'inscrivent gratuitement
+  const isFree = userRole === 'collaborateur' || userRole === 'admin'
 
   async function handleReservation() {
     if (!isLoggedIn) { router.push('/connexion'); return }
 
     if (!reserved) {
-      if (userRole === 'collaborateur') {
+      if (isFree) {
         setLoading(true)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { setLoading(false); return }
@@ -202,7 +204,7 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
                   <span className="text-xs text-[var(--muted)]">Tarif</span>
                   {!isLoggedIn ? (
                     <span className="text-sm font-bold text-[var(--primary)]">{price.toFixed(2)} €</span>
-                  ) : userRole === 'collaborateur' ? (
+                  ) : isFree ? (
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs text-[var(--muted)] line-through">{price.toFixed(2)} €</span>
                       <span className="text-xs font-bold text-green-600">Gratuit</span>
@@ -245,7 +247,7 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
                 ? 'bg-[var(--primary-light)] text-[var(--primary)] hover:bg-red-50 hover:text-red-500 border border-[var(--primary-light)]'
                 : isFull
                 ? 'bg-[var(--border)] text-[var(--muted)] cursor-not-allowed'
-                : userRole === 'collaborateur'
+                : isFree
                 ? 'bg-green-500 text-white hover:opacity-90'
                 : isTravail
                 ? 'bg-[var(--travail)] text-white hover:opacity-90'
@@ -259,7 +261,7 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
             ) : isFull ? (
               'Complet'
             ) : isLoggedIn ? (
-              userRole === 'collaborateur' ? "S'inscrire gratuitement" : 'Réserver ma place'
+              isFree ? "S'inscrire gratuitement" : 'Réserver ma place'
             ) : (
               'Se connecter'
             )}
