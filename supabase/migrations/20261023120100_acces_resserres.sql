@@ -1,6 +1,6 @@
 -- ============================================================
 -- Resserrement des accès (candidatures, notifications, profils, réservations)
--- À exécuter APRÈS 20261023_roles_securises.sql (utilise public.is_super_admin)
+-- À exécuter APRÈS 20261023120000_roles_securises.sql (utilise public.is_super_admin)
 -- Dans Supabase > SQL Editor, tout le fichier d'un coup.
 -- ============================================================
 

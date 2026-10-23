@@ -1,5 +1,5 @@
 -- ============================================================
--- Vérification après 20261023_roles_securises.sql (lecture seule)
+-- Vérification après 20261023120000_roles_securises.sql (lecture seule)
 -- ============================================================
 SELECT * FROM (
   -- Les deux nouveaux triggers doivent apparaître
