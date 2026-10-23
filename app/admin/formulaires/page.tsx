@@ -8,8 +8,9 @@ export default async function FormulaireAdminPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  // Candidatures : réservées au super admin
+  const { data: profile } = await supabase.from('users').select('role, is_super_admin').eq('id', user.id).single()
+  if (profile?.role !== 'admin' || !profile?.is_super_admin) redirect('/admin')
 
   const { data: candidatures } = await supabase
     .from('candidatures')

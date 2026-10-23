@@ -1,20 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PAYPAL_BASE, getPaypalAccessToken } from '@/lib/paypal'
+import { createClient } from '@/lib/supabase/server'
+import { PAYPAL_BASE, getPaypalAccessToken, atelierPrice } from '@/lib/paypal'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const atelierId = searchParams.get('atelierId')
-  const price = searchParams.get('price')
-  const title = searchParams.get('title') ?? 'Atelier'
-  const siteUrl = process.env.SITE_URL ?? 'https://ateliers-app-production-429f.up.railway.app'
+  const siteUrl = process.env.SITE_URL ?? 'https://lesateliersdemergence.up.railway.app'
 
-  if (!atelierId || !price) {
+  if (!atelierId) {
+    return NextResponse.redirect(`${siteUrl}/planning`)
+  }
+
+  // Le prix et le titre viennent de la base, jamais du navigateur
+  const supabase = await createClient()
+  const { data: atelier } = await supabase
+    .from('ateliers')
+    .select('id, title, price')
+    .eq('id', atelierId)
+    .single()
+
+  if (!atelier) {
     return NextResponse.redirect(`${siteUrl}/planning`)
   }
 
   try {
     const token = await getPaypalAccessToken()
-    console.log('[PayPal] token obtenu:', !!token)
 
     const res = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
       method: 'POST',
@@ -22,9 +32,9 @@ export async function GET(req: NextRequest) {
       body: JSON.stringify({
         intent: 'CAPTURE',
         purchase_units: [{
-          amount: { currency_code: 'EUR', value: Number(price).toFixed(2) },
-          description: `Réservation atelier : ${title}`,
-          custom_id: atelierId,
+          amount: { currency_code: 'EUR', value: atelierPrice(atelier.price).toFixed(2) },
+          description: `Réservation atelier : ${atelier.title}`,
+          custom_id: atelier.id,
         }],
         application_context: {
           return_url: `${siteUrl}/paypal/success`,

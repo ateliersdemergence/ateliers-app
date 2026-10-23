@@ -11,6 +11,7 @@ import NotificationBell from './NotificationBell'
 export default function Navbar() {
   const pathname = usePathname()
   const [role, setRole] = useState<string | null>(null)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -25,10 +26,11 @@ export default function Navbar() {
       if (!user) { setLoaded(true); return }
       const { data: profile } = await supabase
         .from('users')
-        .select('role')
+        .select('role, is_super_admin')
         .eq('id', user.id)
         .single()
       setRole(profile?.role ?? null)
+      setIsSuperAdmin(profile?.is_super_admin ?? false)
       setLoaded(true)
     }
     fetchRole()
@@ -110,7 +112,8 @@ export default function Navbar() {
     { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users },
     { href: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
     { href: '/admin/paiements', label: 'Historique des paiements', icon: CreditCard },
-    { href: '/admin/formulaires', label: 'Formulaires', icon: FileText },
+    // Candidatures : réservées au super admin
+    ...(isSuperAdmin ? [{ href: '/admin/formulaires', label: 'Formulaires', icon: FileText }] : []),
   ]
 
   return (

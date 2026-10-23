@@ -528,13 +528,13 @@ function AddAnimateurModal({ onClose, onCreated }: { onClose: () => void; onCrea
             <div className="flex items-start gap-3 p-3 rounded-xl bg-green-50">
               <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-green-700">
-                Compte animateur créé pour <span className="font-semibold">{createdEmail}</span>.
+                Une invitation a été envoyée à <span className="font-semibold">{createdEmail}</span>.
               </p>
             </div>
             <p className="text-sm text-[var(--muted)]">
-              Pour se connecter la première fois, la personne doit cliquer sur
-              <span className="font-medium text-[var(--foreground)]"> « Mot de passe oublié »</span> sur la page de connexion
-              et saisir cet email : elle recevra un lien pour choisir son mot de passe.
+              La personne doit cliquer sur le lien de l&apos;email pour choisir son mot de passe et activer son compte animateur.
+              Si l&apos;email n&apos;arrive pas (pensez aux spams), elle peut aussi utiliser
+              <span className="font-medium text-[var(--foreground)]"> « Mot de passe oublié »</span> sur la page de connexion.
             </p>
             <button
               onClick={onClose}

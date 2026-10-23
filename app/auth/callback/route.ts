@@ -10,19 +10,14 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data: { session } } = await supabase.auth.exchangeCodeForSession(code)
 
-    // Synchronise le profil public avec les métadonnées auth (organisme, role, phone)
+    // Synchronise le profil public avec les métadonnées auth (organisme, phone, nom).
+    // Le rôle n'est JAMAIS lu ici : user_metadata est modifiable par l'utilisateur.
+    // Il est fixé par le trigger handle_new_user puis uniquement par un admin.
     if (session?.user) {
       const meta = session.user.user_metadata ?? {}
       const updates: Record<string, string | null> = {}
 
       if (meta.organisme !== undefined) updates.organisme = meta.organisme ?? null
-
-      // Le rôle des métadonnées n'est appliqué qu'à un simple inscrit : sinon un
-      // admin/animateur promu après coup perdrait son rôle en réinitialisant son mot de passe
-      if (meta.role && meta.role !== 'admin') {
-        const { data: current } = await supabase.from('users').select('role').eq('id', session.user.id).single()
-        if (current?.role === 'participant') updates.role = meta.role
-      }
       if (meta.phone !== undefined) updates.phone = meta.phone ?? null
       if (meta.full_name) updates.full_name = meta.full_name
 

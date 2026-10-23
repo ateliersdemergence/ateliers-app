@@ -97,10 +97,10 @@ export default function RegisterForm() {
     }
 
     if (data.session && data.user) {
+      // Le rôle (participant / collaborateur) est fixé par le trigger handle_new_user
       await supabase.from('users').update({
         phone: fullPhone,
         organisme: organisme.trim() || null,
-        role,
       }).eq('id', data.user.id)
       window.location.href = '/planning'
       return

@@ -15,19 +15,9 @@ interface Entreprise {
   website: string | null
 }
 
-interface Collaborateur {
-  id: string
-  full_name: string
-  email: string
-  phone?: string | null
-  organisme?: string | null
-  avatar_url?: string | null
-}
-
 interface Intervenant {
   id: string
   full_name: string
-  email: string
   avatar_url?: string | null
   role: string
   organisme?: string | null
@@ -36,7 +26,6 @@ interface Intervenant {
 
 interface Props {
   entreprises: Entreprise[]
-  collaborateurs: Collaborateur[]
   intervenants: Intervenant[]
 }
 
@@ -54,7 +43,8 @@ function Avatar({ name, url, size = 'md', square = false }: { name: string; url?
   )
 }
 
-export default function EntreprisesPublicContent({ entreprises, collaborateurs, intervenants }: Props) {
+// Page publique : coordonnées des entreprises uniquement, jamais celles des collaborateurs
+export default function EntreprisesPublicContent({ entreprises, intervenants }: Props) {
   const [tab, setTab] = useState<Tab>('entreprises')
   const [selected, setSelected] = useState<Entreprise | null>(null)
 
@@ -62,13 +52,6 @@ export default function EntreprisesPublicContent({ entreprises, collaborateurs, 
     setTab(t)
     setSelected(null)
   }
-
-  function getEmployees(name: string) {
-    return collaborateurs.filter(u => u.organisme?.trim().toLowerCase() === name.trim().toLowerCase())
-  }
-
-  const employees = selected ? getEmployees(selected.name) : []
-  const contact = employees[0] ?? null
 
   return (
     <div>
@@ -210,30 +193,6 @@ export default function EntreprisesPublicContent({ entreprises, collaborateurs, 
                 )}
               </div>
 
-              {contact && (
-                <>
-                  <div className="mx-5 border-t border-[var(--border)]" />
-                  <div className="px-5 py-4">
-                    <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">Contact employé</p>
-                    <div className="flex items-center gap-3">
-                      <Avatar name={contact.full_name} url={contact.avatar_url} size="sm" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">{contact.full_name}</p>
-                        <a href={`mailto:${contact.email}`} className="text-xs text-[var(--primary)] hover:underline truncate block">{contact.email}</a>
-                        {contact.phone && <a href={`tel:${contact.phone}`} className="text-xs text-[var(--muted)] hover:text-[var(--primary)] transition-colors">{contact.phone}</a>}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {employees.length > 1 && (
-                <div className="px-5 pb-5">
-                  <p className="text-xs text-[var(--muted)]">
-                    + {employees.length - 1} autre{employees.length - 1 > 1 ? 's' : ''} employé{employees.length - 1 > 1 ? 's' : ''} sur la plateforme
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>

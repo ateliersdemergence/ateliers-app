@@ -17,3 +17,10 @@ export async function getPaypalAccessToken(): Promise<string> {
   const data = await res.json()
   return data.access_token as string
 }
+
+// Prix appliqué quand l'atelier n'a pas de prix renseigné (même règle que AtelierCard)
+export const DEFAULT_ATELIER_PRICE = 25
+
+export function atelierPrice(price: number | null | undefined): number {
+  return price ?? DEFAULT_ATELIER_PRICE
+}

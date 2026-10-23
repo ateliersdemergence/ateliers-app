@@ -62,7 +62,8 @@ export default function PlanningView({ ateliers, userReservations, isLoggedIn, u
       isReserved={userReservations.includes(atelier.id)}
       isLoggedIn={isLoggedIn}
       userRole={userRole}
-      canViewParticipants={true}
+      // Noms et emails des participants : admins et animateur de l'atelier uniquement
+      canViewParticipants={userRole === 'admin' || (userRole === 'animateur' && atelier.animateur_id === userId)}
       canEdit={userRole === 'admin'}
       canDelete={userRole === 'admin' || (userRole === 'animateur' && atelier.animateur_id === userId)}
     />
