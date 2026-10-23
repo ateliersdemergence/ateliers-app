@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, X, User, Calendar, CreditCard, UserCheck, Building2, Mail, Phone, MapPin, Globe, FileText } from 'lucide-react'
+import { Bell, X, User, Calendar, CalendarCheck, CreditCard, UserCheck, Building2, Mail, Phone, MapPin, Globe, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -57,10 +57,16 @@ export default function NotificationBell() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
   }
 
-  function handleClick(n: Notification) {
-    setSelected(n)
+  async function handleClick(n: Notification) {
     setOpen(false)
+    // Atelier proposé par un animateur : direction la page de validation
+    if (n.type === 'atelier_pending') {
+      if (!n.is_read) await markRead(n.id)
+      window.location.href = '/admin/validation'
+      return
+    }
     if (!n.is_read) markRead(n.id)
+    setSelected(n)
   }
 
   function getIcon(type: string) {
@@ -70,6 +76,7 @@ export default function NotificationBell() {
       case 'payment': return <CreditCard className="w-3.5 h-3.5" />
       case 'candidature_animateur': return <UserCheck className="w-3.5 h-3.5" />
       case 'candidature_entreprise': return <Building2 className="w-3.5 h-3.5" />
+      case 'atelier_pending': return <CalendarCheck className="w-3.5 h-3.5" />
       default: return <Bell className="w-3.5 h-3.5" />
     }
   }
@@ -81,6 +88,7 @@ export default function NotificationBell() {
       case 'payment': return 'bg-amber-50 text-amber-600'
       case 'candidature_animateur': return 'bg-purple-50 text-purple-500'
       case 'candidature_entreprise': return 'bg-orange-50 text-orange-500'
+      case 'atelier_pending': return 'bg-amber-50 text-amber-600'
       default: return 'bg-[var(--primary-light)] text-[var(--primary)]'
     }
   }

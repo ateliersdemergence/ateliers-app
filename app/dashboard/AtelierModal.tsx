@@ -39,7 +39,8 @@ export default function AtelierModal({ atelier, animateurId, onClose }: Props) {
     setLoading(true)
     setError('')
 
-    const payload = { ...form, animateur_id: animateurId }
+    // En modification, on garde l'animateur d'origine (un admin peut éditer l'atelier d'un autre)
+    const payload = atelier ? form : { ...form, animateur_id: animateurId }
 
     const { error } = atelier
       ? await supabase.from('ateliers').update(payload).eq('id', atelier.id)

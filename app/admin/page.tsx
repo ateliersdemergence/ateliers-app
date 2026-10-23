@@ -31,7 +31,7 @@ export default async function AdminPage() {
     supabase.from('reservations').select('*', { count: 'exact', head: true }).eq('status', 'confirmed'),
     supabase.from('users').select('id, organisme, created_at').eq('role', 'participant').order('created_at', { ascending: true }),
     supabase.from('reservations').select('users(organisme)').eq('status', 'confirmed'),
-    supabase.from('ateliers_with_spots').select('title, theme, date, spots_taken, max_participants').or('is_cancelled.eq.false,is_cancelled.is.null').order('date', { ascending: false }).limit(12),
+    supabase.from('ateliers_with_spots').select('title, theme, date, spots_taken, max_participants').or('is_cancelled.eq.false,is_cancelled.is.null').eq('status', 'approved').order('date', { ascending: false }).limit(12),
   ])
 
   // Auth users pour les connexions (last_sign_in_at)

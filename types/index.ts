@@ -1,6 +1,7 @@
 export type Role = 'admin' | 'animateur' | 'participant' | 'collaborateur'
 export type Theme = 'travail' | 'detente'
 export type ReservationStatus = 'confirmed' | 'cancelled' | 'waitlist'
+export type AtelierStatus = 'pending' | 'approved' | 'rejected'
 
 export interface User {
   id: string
@@ -27,6 +28,8 @@ export interface Atelier {
   location: string | null
   is_cancelled: boolean
   price?: number
+  status?: AtelierStatus
+  rejection_reason?: string | null
   created_at: string
   animateur?: User
   reservations?: Reservation[]

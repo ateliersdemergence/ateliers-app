@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronDown, User, LogOut, LayoutDashboard, Users, CreditCard, Building2, CalendarPlus, Menu, X, FileText } from 'lucide-react'
+import { ChevronDown, User, LogOut, LayoutDashboard, Users, CreditCard, Building2, CalendarPlus, CalendarCheck, Menu, X, FileText } from 'lucide-react'
 import NotificationBell from './NotificationBell'
 
 export default function Navbar() {
@@ -112,8 +112,11 @@ export default function Navbar() {
     { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users },
     { href: '/admin/entreprises', label: 'Entreprises', icon: Building2 },
     { href: '/admin/paiements', label: 'Historique des paiements', icon: CreditCard },
-    // Candidatures : réservées au super admin
-    ...(isSuperAdmin ? [{ href: '/admin/formulaires', label: 'Formulaires', icon: FileText }] : []),
+    // Validation des ateliers et candidatures : réservées au super admin
+    ...(isSuperAdmin ? [
+      { href: '/admin/validation', label: 'Ateliers à valider', icon: CalendarCheck },
+      { href: '/admin/formulaires', label: 'Formulaires', icon: FileText },
+    ] : []),
   ]
 
   return (

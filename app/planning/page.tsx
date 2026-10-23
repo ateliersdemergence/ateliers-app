@@ -9,6 +9,8 @@ export default async function PlanningPage() {
     .from('ateliers_with_spots')
     .select('*, users!ateliers_animateur_id_fkey(full_name, email)')
     .or('is_cancelled.eq.false,is_cancelled.is.null')
+    // Seuls les ateliers validés par le super admin sont publiés
+    .eq('status', 'approved')
     .gte('date', new Date().toISOString().split('T')[0])
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })

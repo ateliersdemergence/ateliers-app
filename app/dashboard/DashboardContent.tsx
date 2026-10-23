@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Plus, Users, Pencil } from 'lucide-react'
+import { Plus, Users, Pencil, Clock, XCircle } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -30,10 +31,13 @@ export default function DashboardContent({ profile, ateliers }: Props) {
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Tableau de bord</h1>
           <p className="text-sm text-[var(--muted)] mt-1">Bonjour, {profile.full_name}</p>
         </div>
-        <Button onClick={() => { setEditingAtelier(null); setShowModal(true) }}>
-          <Plus className="w-4 h-4" />
-          Nouvel atelier
-        </Button>
+        {/* Création via le formulaire avec mini planning (contrôle des créneaux + validation) */}
+        <Link href="/ateliers/nouveau">
+          <Button>
+            <Plus className="w-4 h-4" />
+            Nouvel atelier
+          </Button>
+        </Link>
       </div>
 
       {/* Stats */}
@@ -90,7 +94,22 @@ function AtelierRow({ atelier, onEdit }: { atelier: Atelier; onEdit: () => void 
         <div className="flex items-center gap-2 mb-1">
           <Badge theme={atelier.theme} label={atelier.theme === 'travail' ? 'Professionnel' : 'Ludique'} />
           <span className="text-sm font-semibold text-[var(--foreground)] truncate">{atelier.title}</span>
+          {atelier.status === 'pending' && (
+            <span className="flex-shrink-0 flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">
+              <Clock className="w-3 h-3" />En attente de validation
+            </span>
+          )}
+          {atelier.status === 'rejected' && (
+            <span className="flex-shrink-0 flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-500">
+              <XCircle className="w-3 h-3" />Refusé
+            </span>
+          )}
         </div>
+        {atelier.status === 'rejected' && (
+          <p className="text-xs text-red-500 mb-1">
+            {atelier.rejection_reason ? `Motif : ${atelier.rejection_reason}. ` : ''}Modifiez-le pour le soumettre à nouveau.
+          </p>
+        )}
         <p className="text-xs text-[var(--muted)] capitalize">
           {format(parseISO(atelier.date), 'EEEE d MMMM', { locale: fr })} · {atelier.start_time.slice(0, 5)}–{atelier.end_time.slice(0, 5)}
           {atelier.location && ` · ${atelier.location}`}
