@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createSupabaseAdmin } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+const ALLOWED_ROLES = ['animateur', 'collaborateur', 'participant'] as const
 
 export async function POST(request: NextRequest) {
   // Vérifier que l'appelant est admin
@@ -22,27 +24,37 @@ export async function POST(request: NextRequest) {
   }
 
   // Lire le body
-  const { email, full_name, role = 'animateur' } = await request.json()
+  const body = await request.json()
+  const email = String(body.email ?? '').trim().toLowerCase()
+  const full_name = String(body.full_name ?? '').trim()
+  const phone = String(body.phone ?? '').trim() || null
+  const role = body.role ?? 'animateur'
 
   if (!email || !full_name) {
     return NextResponse.json({ error: 'Email et nom requis' }, { status: 400 })
   }
+  if (!ALLOWED_ROLES.includes(role)) {
+    return NextResponse.json({ error: 'Rôle invalide' }, { status: 400 })
+  }
 
-  // Client admin avec la clé service
-  const adminClient = createSupabaseAdmin(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const adminClient = createAdminClient()
 
   const { data, error } = await adminClient.auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { full_name, role },
+    user_metadata: { full_name, role, phone },
   })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    const alreadyExists = /already (been )?registered|already exists/i.test(error.message)
+    return NextResponse.json(
+      { error: alreadyExists ? 'Un compte existe déjà avec cet email. Changez plutôt son rôle dans la liste des inscrits.' : error.message },
+      { status: 400 }
+    )
   }
+
+  // Le trigger crée le profil ; on s'assure que rôle et téléphone sont bien renseignés
+  await adminClient.from('users').update({ role, full_name, phone }).eq('id', data.user.id)
 
   return NextResponse.json({ user: data.user }, { status: 201 })
 }

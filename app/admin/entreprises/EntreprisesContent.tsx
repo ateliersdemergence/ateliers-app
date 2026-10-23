@@ -216,8 +216,12 @@ export default function EntreprisesContent({ entreprises, collaborateurs }: Prop
     setSearching(false)
   }
 
-  async function addUserToCompany(userId: string, companyName: string) {
-    await supabase.from('users').update({ organisme: companyName, role: 'collaborateur' }).eq('id', userId)
+  async function addUserToCompany(userId: string, currentRole: string, companyName: string) {
+    // Un simple inscrit devient collaborateur ; admins et animateurs gardent leur rôle
+    const updates = currentRole === 'participant'
+      ? { organisme: companyName, role: 'collaborateur' }
+      : { organisme: companyName }
+    await supabase.from('users').update(updates).eq('id', userId)
     setAddedIds(ids => [...ids, userId]); router.refresh()
   }
 
@@ -363,7 +367,7 @@ export default function EntreprisesContent({ entreprises, collaborateurs }: Prop
                                     <p className="text-sm font-medium text-[var(--foreground)] truncate">{u.full_name}</p>
                                     <p className="text-xs text-[var(--muted)] truncate">{u.email}</p>
                                   </div>
-                                  <button onClick={() => !alreadyAdded && addUserToCompany(u.id, e.name)} disabled={alreadyAdded} className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors flex-shrink-0 ${alreadyAdded ? 'bg-green-50 text-green-600 cursor-default' : 'bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white'}`}>
+                                  <button onClick={() => !alreadyAdded && addUserToCompany(u.id, u.role, e.name)} disabled={alreadyAdded} className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors flex-shrink-0 ${alreadyAdded ? 'bg-green-50 text-green-600 cursor-default' : 'bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white'}`}>
                                     {alreadyAdded ? <><Check className="w-3 h-3" />Ajouté</> : <><UserPlus className="w-3 h-3" />Ajouter</>}
                                   </button>
                                 </div>

@@ -16,7 +16,13 @@ export async function GET(request: NextRequest) {
       const updates: Record<string, string | null> = {}
 
       if (meta.organisme !== undefined) updates.organisme = meta.organisme ?? null
-      if (meta.role) updates.role = meta.role
+
+      // Le rôle des métadonnées n'est appliqué qu'à un simple inscrit : sinon un
+      // admin/animateur promu après coup perdrait son rôle en réinitialisant son mot de passe
+      if (meta.role && meta.role !== 'admin') {
+        const { data: current } = await supabase.from('users').select('role').eq('id', session.user.id).single()
+        if (current?.role === 'participant') updates.role = meta.role
+      }
       if (meta.phone !== undefined) updates.phone = meta.phone ?? null
       if (meta.full_name) updates.full_name = meta.full_name
 

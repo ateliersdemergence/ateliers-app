@@ -28,6 +28,9 @@ export default function AdminContent({ admins, animateurs, participants, collabo
   const [searchResults, setSearchResults] = useState<User[]>([])
   const [searching, setSearching] = useState(false)
 
+  // Création d'un animateur
+  const [showAddAnimateur, setShowAddAnimateur] = useState(false)
+
   async function searchUsers(query: string) {
     setSearchQuery(query)
     if (query.trim().length < 2) { setSearchResults([]); return }
@@ -201,9 +204,18 @@ export default function AdminContent({ admins, animateurs, participants, collabo
 
         {/* Animateurs */}
         <Card className="p-5">
-          <h2 className="font-semibold text-[var(--foreground)] mb-4">
-            Animateurs ({animateurs.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-[var(--foreground)] leading-none">
+              Animateurs ({animateurs.length})
+            </h2>
+            <button
+              onClick={() => setShowAddAnimateur(true)}
+              className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              Ajouter
+            </button>
+          </div>
           <div className="flex flex-col gap-2">
             {animateurs.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">Aucun animateur.</p>
@@ -324,6 +336,13 @@ export default function AdminContent({ admins, animateurs, participants, collabo
 
       {selectedUser && (
         <UserContactModal user={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
+
+      {showAddAnimateur && (
+        <AddAnimateurModal
+          onClose={() => setShowAddAnimateur(false)}
+          onCreated={() => router.refresh()}
+        />
       )}
 
       {userToDelete && (
@@ -452,6 +471,103 @@ function DeleteConfirmModal({
             {loading ? 'Suppression…' : 'Supprimer définitivement'}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function AddAnimateurModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [createdEmail, setCreatedEmail] = useState('')
+
+  function set(field: keyof typeof form) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [field]: e.target.value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const res = await fetch('/api/admin/create-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, role: 'animateur' }),
+    })
+    setLoading(false)
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: 'Erreur inconnue' }))
+      setError(error)
+      return
+    }
+    setCreatedEmail(form.email.trim())
+    onCreated()
+  }
+
+  const inputClass = 'w-full px-3 py-2 rounded-xl border border-[var(--border)] text-sm bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition'
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm bg-black/30 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-[var(--foreground)]">Nouvel animateur</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[var(--border)] text-[var(--muted)] transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {createdEmail ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-green-50">
+              <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-green-700">
+                Compte animateur créé pour <span className="font-semibold">{createdEmail}</span>.
+              </p>
+            </div>
+            <p className="text-sm text-[var(--muted)]">
+              Pour se connecter la première fois, la personne doit cliquer sur
+              <span className="font-medium text-[var(--foreground)]"> « Mot de passe oublié »</span> sur la page de connexion
+              et saisir cet email : elle recevra un lien pour choisir son mot de passe.
+            </p>
+            <button
+              onClick={onClose}
+              className="py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:opacity-90"
+            >
+              Fermer
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--foreground)]">Nom complet <span className="text-red-500">*</span></label>
+              <input type="text" value={form.full_name} onChange={set('full_name')} required autoFocus className={inputClass} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--foreground)]">Email <span className="text-red-500">*</span></label>
+              <input type="email" value={form.email} onChange={set('email')} required className={inputClass} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-[var(--foreground)]">Téléphone <span className="text-xs text-[var(--muted)] font-normal">(optionnel)</span></label>
+              <input type="tel" value={form.phone} onChange={set('phone')} className={inputClass} />
+            </div>
+            {error && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--muted)] hover:bg-[var(--background)] transition-colors">
+                Annuler
+              </button>
+              <button type="submit" disabled={loading} className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Créer'}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )
