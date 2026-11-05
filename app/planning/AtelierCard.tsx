@@ -21,6 +21,8 @@ interface AtelierWithAnimateur extends Atelier {
 interface Props {
   atelier: AtelierWithAnimateur
   isReserved: boolean
+  // Paiement Stripe commencé, place encore bloquée (peut être repris)
+  isPendingPayment?: boolean
   isLoggedIn: boolean
   userRole?: string | null
   canViewParticipants?: boolean
@@ -28,7 +30,7 @@ interface Props {
   canDelete?: boolean
 }
 
-export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole, canViewParticipants, canEdit, canDelete }: Props) {
+export default function AtelierCard({ atelier, isReserved, isPendingPayment = false, isLoggedIn, userRole, canViewParticipants, canEdit, canDelete }: Props) {
   const [reserved, setReserved] = useState(isReserved)
   const [loading, setLoading] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
@@ -90,9 +92,10 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
     router.refresh()
   }
 
-  const price = atelier.price ?? 25
-  // Collaborateurs (entreprises partenaires) et admins s'inscrivent gratuitement
-  const isFree = userRole === 'collaborateur' || userRole === 'admin'
+  // Prix obligatoire en base (0 = atelier gratuit)
+  const price = Number(atelier.price ?? 0)
+  // Atelier gratuit, ou collaborateurs (entreprises partenaires) et admins : inscription directe
+  const isFree = price === 0 || userRole === 'collaborateur' || userRole === 'admin'
 
   async function handleReservation() {
     if (!isLoggedIn) { router.push('/connexion'); return }
@@ -241,11 +244,11 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
 
           <button
             onClick={e => { e.stopPropagation(); handleReservation() }}
-            disabled={loading || (isFull && !reserved)}
+            disabled={loading || (isFull && !reserved && !isPendingPayment)}
             className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] flex items-center justify-center gap-1.5 ${
               reserved
                 ? 'bg-[var(--primary-light)] text-[var(--primary)] hover:bg-red-50 hover:text-red-500 border border-[var(--primary-light)]'
-                : isFull
+                : isFull && !isPendingPayment
                 ? 'bg-[var(--border)] text-[var(--muted)] cursor-not-allowed'
                 : isFree
                 ? 'bg-green-500 text-white hover:opacity-90'
@@ -258,6 +261,8 @@ export default function AtelierCard({ atelier, isReserved, isLoggedIn, userRole,
               <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : reserved ? (
               <><CheckCircle2 className="w-3.5 h-3.5" /> Réservé · Annuler</>
+            ) : isPendingPayment ? (
+              'Paiement en cours · Reprendre'
             ) : isFull ? (
               'Complet'
             ) : isLoggedIn ? (

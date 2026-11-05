@@ -92,7 +92,8 @@ export default function CGUPage() {
 
         <Section title="Article 5 — Réservations et paiements">
           <p>
-            La réservation d'un atelier est effective après confirmation du paiement via PayPal. Le prix affiché
+            La réservation d'un atelier est effective après confirmation du paiement en ligne (paiement sécurisé par Stripe).
+            Pendant le paiement, la place est réservée 30 minutes ; passé ce délai sans paiement, elle est libérée. Le prix affiché
             correspond au tarif adhérent en vigueur au moment de la réservation. Toute réservation validée vaut
             acceptation des{' '}
             <Link href="/cgv" className="text-[var(--primary)] hover:underline">

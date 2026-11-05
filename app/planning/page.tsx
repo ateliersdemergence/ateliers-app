@@ -2,7 +2,12 @@ import Navbar from '@/components/layout/Navbar'
 import PlanningView from './PlanningView'
 import { createClient } from '@/lib/supabase/server'
 
-export default async function PlanningPage() {
+export default async function PlanningPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ paiement?: string }>
+}) {
+  const { paiement } = await searchParams
   const supabase = await createClient()
 
   const { data: ateliers } = await supabase
@@ -18,22 +23,28 @@ export default async function PlanningPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   let userReservations: string[] = []
+  let userPendingPayments: string[] = []
   let userRole: string | null = null
 
   if (user) {
     const [{ data: reservations }, { data: profile }] = await Promise.all([
       supabase
         .from('reservations')
-        .select('atelier_id')
+        .select('atelier_id, status, payment_expires_at')
         .eq('user_id', user.id)
-        .eq('status', 'confirmed'),
+        .in('status', ['confirmed', 'pending_payment']),
       supabase
         .from('users')
         .select('role')
         .eq('id', user.id)
         .single(),
     ])
-    userReservations = reservations?.map(r => r.atelier_id) ?? []
+    const now = new Date()
+    userReservations = reservations?.filter(r => r.status === 'confirmed').map(r => r.atelier_id) ?? []
+    // Place bloquée pendant un paiement Stripe pas encore terminé
+    userPendingPayments = reservations
+      ?.filter(r => r.status === 'pending_payment' && r.payment_expires_at && new Date(r.payment_expires_at) > now)
+      .map(r => r.atelier_id) ?? []
     userRole = profile?.role ?? null
   }
 
@@ -48,6 +59,8 @@ export default async function PlanningPage() {
         <PlanningView
           ateliers={ateliers ?? []}
           userReservations={userReservations}
+          userPendingPayments={userPendingPayments}
+          paymentNotice={paiement === 'annule' ? 'cancelled' : paiement === 'erreur' ? 'error' : null}
           isLoggedIn={!!user}
           userRole={userRole}
           userId={user?.id ?? null}

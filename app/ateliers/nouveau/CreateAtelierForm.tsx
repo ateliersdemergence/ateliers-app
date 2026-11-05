@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import TimeSelect from '@/components/ui/TimeSelect'
 import MiniPlanning, { overlaps, type Creneau } from '@/components/ateliers/MiniPlanning'
 import type { User, Theme } from '@/types'
+import { parsePrice } from '@/lib/price'
 
 interface Animateur {
   id: string
@@ -36,7 +37,8 @@ export default function CreateAtelierForm({ profile, animateurs }: Props) {
     theme: 'travail' as Theme,
     location: '',
     animateur_id: isAdmin ? (animateurs[0]?.id ?? profile.id) : profile.id,
-    price: 35,
+    // Prix obligatoire, sans valeur pré-remplie (0 = gratuit)
+    price: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -82,10 +84,12 @@ export default function CreateAtelierForm({ profile, animateurs }: Props) {
     if (!form.date) { setError('Choisissez un jour dans le planning.'); return }
     if (timesInvalid) { setError("L'heure de fin doit être après l'heure de début."); return }
     if (conflict) { setError('Ce créneau est déjà pris, choisissez un autre horaire.'); return }
+    const price = parsePrice(form.price)
+    if (price === null) { setError('Indiquez un prix (0 pour un atelier gratuit).'); return }
 
     setLoading(true)
     // Le statut (en attente / validé) est fixé par la base selon le rôle
-    const { error } = await supabase.from('ateliers').insert({ ...form, is_cancelled: false })
+    const { error } = await supabase.from('ateliers').insert({ ...form, price, is_cancelled: false })
 
     if (error) {
       setError(error.message)
@@ -214,16 +218,19 @@ export default function CreateAtelierForm({ profile, animateurs }: Props) {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[var(--foreground)]">
-              Prix <span className="text-xs text-[var(--muted)] font-normal">(0 = gratuit)</span>
+              Prix <span className="text-red-400">*</span> <span className="text-xs text-[var(--muted)] font-normal">(0 = gratuit)</span>
             </label>
             <div className="relative">
               <input
                 type="number"
+                inputMode="decimal"
                 className={inputClass + ' pr-8'}
                 min={0}
                 step={0.01}
+                placeholder="Ex. 35"
                 value={form.price}
-                onChange={e => set('price', parseFloat(e.target.value) || 0)}
+                onChange={e => set('price', e.target.value)}
+                required
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">€</span>
             </div>

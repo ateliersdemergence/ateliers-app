@@ -10,6 +10,8 @@ import type { Atelier } from '@/types'
 interface Props {
   ateliers: Atelier[]
   userReservations: string[]
+  userPendingPayments: string[]
+  paymentNotice: 'cancelled' | 'error' | null
   isLoggedIn: boolean
   userRole: string | null
   userId: string | null
@@ -20,7 +22,8 @@ const DAY_NAMES_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Same
 
 type ViewMode = 'week' | 'month'
 
-export default function PlanningView({ ateliers, userReservations, isLoggedIn, userRole, userId }: Props) {
+export default function PlanningView({ ateliers, userReservations, userPendingPayments, paymentNotice, isLoggedIn, userRole, userId }: Props) {
+  const [notice, setNotice] = useState(paymentNotice)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>('week')
@@ -60,6 +63,7 @@ export default function PlanningView({ ateliers, userReservations, isLoggedIn, u
       key={atelier.id}
       atelier={atelier}
       isReserved={userReservations.includes(atelier.id)}
+      isPendingPayment={userPendingPayments.includes(atelier.id)}
       isLoggedIn={isLoggedIn}
       userRole={userRole}
       // Noms et emails des participants : admins et animateur de l'atelier uniquement
@@ -201,6 +205,19 @@ export default function PlanningView({ ateliers, userReservations, isLoggedIn, u
   /* ── VUE MOIS ── */
   return (
     <div>
+      {notice && (
+        <div className={`mb-6 flex items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-sm ${
+          notice === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-800'
+        }`}>
+          <span>
+            {notice === 'error'
+              ? 'Un problème est survenu avec le paiement. Si vous avez été débité, contactez-nous.'
+              : 'Paiement annulé : aucun montant n’a été débité et la place a été libérée.'}
+          </span>
+          <button onClick={() => setNotice(null)} className="font-semibold opacity-70 hover:opacity-100" aria-label="Fermer">×</button>
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="flex items-center justify-between mb-6 bg-white rounded-2xl border border-[var(--border)] px-4 py-3 sm:px-5 sm:py-4">
         <button

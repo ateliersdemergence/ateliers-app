@@ -6,6 +6,7 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TimeSelect from '@/components/ui/TimeSelect'
 import type { User, Theme } from '@/types'
+import { parsePrice } from '@/lib/price'
 
 interface Atelier {
   id: string
@@ -39,7 +40,8 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
     theme: atelier.theme,
     location: atelier.location ?? '',
     animateur_id: atelier.animateur_id,
-    price: atelier.price ?? 25,
+    // Prix obligatoire (0 = gratuit), saisi en texte pour ne jamais le remplacer en silence
+    price: atelier.price != null ? String(atelier.price) : '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -52,12 +54,14 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     setError('')
+    const price = parsePrice(form.price)
+    if (price === null) { setError('Indiquez un prix (0 pour un atelier gratuit).'); return }
+    setLoading(true)
 
     const { error } = await supabase
       .from('ateliers')
-      .update(form)
+      .update({ ...form, price })
       .eq('id', atelier.id)
 
     if (error) {
@@ -145,16 +149,18 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[var(--foreground)]">
-              Prix <span className="text-xs text-[var(--muted)] font-normal">(0 = gratuit)</span>
+              Prix <span className="text-red-400">*</span> <span className="text-xs text-[var(--muted)] font-normal">(0 = gratuit)</span>
             </label>
             <div className="relative">
               <input
                 type="number"
+                inputMode="decimal"
                 className={inputClass + ' pr-8'}
                 min={0}
                 step={0.01}
                 value={form.price}
-                onChange={e => set('price', parseFloat(e.target.value) || 0)}
+                onChange={e => set('price', e.target.value)}
+                required
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">€</span>
             </div>

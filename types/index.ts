@@ -1,6 +1,6 @@
 export type Role = 'admin' | 'animateur' | 'participant' | 'collaborateur'
 export type Theme = 'travail' | 'detente'
-export type ReservationStatus = 'confirmed' | 'cancelled' | 'waitlist'
+export type ReservationStatus = 'confirmed' | 'cancelled' | 'waitlist' | 'pending_payment'
 export type AtelierStatus = 'pending' | 'approved' | 'rejected'
 
 export interface User {
@@ -42,7 +42,10 @@ export interface Reservation {
   atelier_id: string
   status: ReservationStatus
   payment_id?: string | null
-  payment_method?: string | null
+  payment_method?: 'stripe' | 'paypal' | null
+  stripe_checkout_session_id?: string | null
+  stripe_payment_intent_id?: string | null
+  payment_expires_at?: string | null
   created_at: string
   user?: User
   atelier?: Atelier

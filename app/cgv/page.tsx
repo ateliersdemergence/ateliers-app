@@ -164,18 +164,20 @@ export default function CGVPage() {
 
         <Section title="Article 10 — Paiement">
           <p>
-            Le paiement est exigible immédiatement à la commande. Le Client peut effectuer le règlement par carte de
-            paiement ou via <strong className="text-[var(--foreground)]">PayPal</strong>.
+            Le paiement est exigible immédiatement à la commande. Le Client effectue le règlement par carte de
+            paiement (y compris via Apple Pay ou Google Pay).
             Les cartes émises par des banques domiciliées hors de France doivent être des cartes bancaires internationales
             (Mastercard ou Visa).
           </p>
           <p className="mt-3">
-            Le paiement sécurisé en ligne par carte bancaire ou PayPal est réalisé par notre prestataire de paiement
-            PayPal (PayPal Holdings, Inc.) — les informations transmises sont chiffrées et ne peuvent être lues au cours
-            du transport sur le réseau. En utilisant PayPal, le Client est soumis aux{' '}
-            <a href="https://www.paypal.com/fr/webapps/mpp/ua/useragreement-full" target="_blank" rel="noopener noreferrer"
+            Le paiement sécurisé en ligne est réalisé par notre prestataire de paiement{' '}
+            <strong className="text-[var(--foreground)]">Stripe</strong> (Stripe Payments Europe, Ltd.) sur une page
+            de paiement hébergée par Stripe : les informations transmises sont chiffrées et ne peuvent être lues au cours
+            du transport sur le réseau ; les données de carte ne sont ni transmises ni conservées par le Vendeur.
+            Le traitement des données par Stripe est décrit dans sa{' '}
+            <a href="https://stripe.com/fr/privacy" target="_blank" rel="noopener noreferrer"
               className="text-[var(--primary)] hover:underline">
-              conditions d'utilisation de PayPal
+              politique de confidentialité
             </a>.
           </p>
           <p className="mt-3">
