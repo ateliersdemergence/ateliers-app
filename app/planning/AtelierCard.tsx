@@ -39,6 +39,8 @@ export default function AtelierCard({ atelier, isReserved, isPendingPayment = fa
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
+  const description = atelier.description?.trim()
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const supabase = createClient()
@@ -191,6 +193,25 @@ export default function AtelierCard({ atelier, isReserved, isPendingPayment = fa
           </div>
 
           <p className="text-sm font-bold text-[var(--foreground)] leading-snug">{atelier.title}</p>
+
+          {description && (
+            <div className="-mt-1">
+              <p className={`text-xs text-[var(--foreground)]/80 leading-relaxed whitespace-pre-line ${
+                showFullDescription ? '' : 'line-clamp-3'
+              }`}>
+                {description}
+              </p>
+              {description.length > 120 && (
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); setShowFullDescription(v => !v) }}
+                  className="mt-0.5 text-xs font-medium text-[var(--primary)] hover:underline"
+                >
+                  {showFullDescription ? 'Réduire' : 'Lire la suite'}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
             <Clock className="w-3.5 h-3.5 flex-shrink-0" />
