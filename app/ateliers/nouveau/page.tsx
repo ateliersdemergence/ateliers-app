@@ -3,7 +3,16 @@ import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import CreateAtelierForm from './CreateAtelierForm'
 
-export default async function NouvelAtelierPage() {
+export default async function NouvelAtelierPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
+  // Jour choisi depuis le planning (yyyy-MM-dd), ignoré s'il est invalide ou passé
+  const { date } = await searchParams
+  const today = new Date().toISOString().split('T')[0]
+  const initialDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date)) && date >= today ? date : ''
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
@@ -30,7 +39,7 @@ export default async function NouvelAtelierPage() {
     <>
       <Navbar />
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-        <CreateAtelierForm profile={profile} animateurs={animateurs} />
+        <CreateAtelierForm profile={profile} animateurs={animateurs} initialDate={initialDate} />
       </main>
     </>
   )

@@ -59,3 +59,14 @@ export interface EmailLog {
   recipients_count: number
   sent_at: string
 }
+
+// Indisponibilité de la salle (réunion, RDV, location…)
+// motif : renseigné pour les admins, null pour les animateurs (« Indisponible »)
+export interface Indisponibilite {
+  id: string
+  date: string
+  start_time: string
+  end_time: string
+  all_day: boolean
+  motif: string | null
+}

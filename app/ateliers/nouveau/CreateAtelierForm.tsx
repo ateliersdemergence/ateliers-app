@@ -21,16 +21,18 @@ interface Animateur {
 interface Props {
   profile: User
   animateurs: Animateur[]
+  // Jour choisi en cliquant sur le planning (yyyy-MM-dd)
+  initialDate?: string
 }
 
-export default function CreateAtelierForm({ profile, animateurs }: Props) {
+export default function CreateAtelierForm({ profile, animateurs, initialDate = '' }: Props) {
   const isAdmin = profile.role === 'admin'
   // Seuls les ateliers du super admin sont publiés directement ; les autres attendent sa validation
   const isSuperAdmin = profile.is_super_admin ?? false
   const [form, setForm] = useState({
     title: '',
     description: '',
-    date: '',
+    date: initialDate,
     start_time: '',
     end_time: '',
     max_participants: 15,
@@ -47,7 +49,7 @@ export default function CreateAtelierForm({ profile, animateurs }: Props) {
   const [supabase] = useState(createClient)
 
   // Mini planning : créneaux déjà pris sur le mois affiché (validés + en attente)
-  const [month, setMonth] = useState(() => startOfMonth(new Date()))
+  const [month, setMonth] = useState(() => startOfMonth(initialDate ? parseISO(initialDate) : new Date()))
   const [creneaux, setCreneaux] = useState<Creneau[]>([])
   const [loadingCreneaux, setLoadingCreneaux] = useState(false)
 
@@ -272,9 +274,11 @@ export default function CreateAtelierForm({ profile, animateurs }: Props) {
                       <span className="truncate text-[var(--foreground)]">{c.title}</span>
                       {c.animateur_name && <span className="truncate text-[var(--muted)]">· {c.is_mine ? 'vous' : c.animateur_name}</span>}
                       <span className={`ml-auto flex-shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                        c.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-[var(--primary-light)] text-[var(--primary)]'
+                        c.status === 'indisponible'
+                          ? 'bg-[#eef0ef] text-[#4b504d]'
+                          : c.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-[var(--primary-light)] text-[var(--primary)]'
                       }`}>
-                        {c.status === 'pending' ? 'En attente' : 'Validé'}
+                        {c.status === 'indisponible' ? 'Salle indisponible' : c.status === 'pending' ? 'En attente' : 'Validé'}
                       </span>
                     </li>
                   ))}

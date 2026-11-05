@@ -10,7 +10,7 @@ export interface Creneau {
   start_time: string
   end_time: string
   title: string
-  status: 'pending' | 'approved'
+  status: 'pending' | 'approved' | 'indisponible'
   animateur_name: string | null
   is_mine: boolean
 }
@@ -97,7 +97,7 @@ export default function MiniPlanning({ month, onMonthChange, selectedDate, onSel
                     <span
                       key={c.id}
                       className={`w-1 h-1 rounded-full ${
-                        isSelected ? 'bg-white' : c.status === 'pending' ? 'bg-amber-400' : 'bg-[var(--primary)]'
+                        isSelected ? 'bg-white' : c.status === 'indisponible' ? 'bg-[#8a8f8c]' : c.status === 'pending' ? 'bg-amber-400' : 'bg-[var(--primary)]'
                       }`}
                     />
                   ))}
@@ -108,9 +108,10 @@ export default function MiniPlanning({ month, onMonthChange, selectedDate, onSel
         })}
       </div>
 
-      <div className="flex items-center gap-4 mt-2 px-1 text-[11px] text-[var(--muted)]">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 px-1 text-[11px] text-[var(--muted)]">
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />Atelier validé</span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" />En attente de validation</span>
+        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#8a8f8c]" />Salle indisponible</span>
       </div>
     </div>
   )
