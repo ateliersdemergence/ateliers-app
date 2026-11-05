@@ -169,13 +169,26 @@ export default function AtelierCard({ atelier, isReserved, isPendingPayment = fa
         <div className={`h-1.5 ${isTravail ? 'bg-[var(--travail)]' : 'bg-[var(--detente)]'}`} />
 
         <div className="p-4 flex flex-col gap-3 flex-1">
-          <span className={`self-start text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-            isTravail
-              ? 'bg-[var(--travail-light)] text-[var(--travail)]'
-              : 'bg-[var(--detente-light)] text-[var(--detente)]'
-          }`}>
-            {isTravail ? 'Professionnel' : 'Ludique'}
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              isTravail
+                ? 'bg-[var(--travail-light)] text-[var(--travail)]'
+                : 'bg-[var(--detente-light)] text-[var(--detente)]'
+            }`}>
+              {isTravail ? 'Professionnel' : 'Ludique'}
+            </span>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={e => { e.stopPropagation(); router.push(`/ateliers/${atelier.id}/modifier`) }}
+                title="Modifier l'atelier"
+                aria-label="Modifier l'atelier"
+                className="w-7 h-7 -my-1 -mr-1 rounded-lg flex items-center justify-center text-[var(--muted)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           <p className="text-sm font-bold text-[var(--foreground)] leading-snug">{atelier.title}</p>
 

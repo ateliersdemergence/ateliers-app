@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TimeSelect from '@/components/ui/TimeSelect'
 import type { User, Theme } from '@/types'
@@ -45,8 +45,31 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  // Supprime l'atelier et ses réservations (suppression en cascade côté base)
+  async function handleDelete() {
+    setError('')
+    setDeleting(true)
+    const { data, error } = await supabase
+      .from('ateliers')
+      .delete()
+      .eq('id', atelier.id)
+      .select('id')
+
+    if (error || !data?.length) {
+      setError(error?.message ?? 'La suppression n’a pas pu être effectuée.')
+      setDeleting(false)
+      setConfirmDelete(false)
+      return
+    }
+
+    router.push('/planning')
+    router.refresh()
+  }
 
   function set(key: string, value: string | number) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -93,7 +116,7 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
             <Save className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">Modifier l'atelier</h1>
+            <h1 className="text-2xl font-bold text-[var(--foreground)]">Modifier l’atelier</h1>
             <p className="text-sm text-[var(--muted)]">{atelier.title}</p>
           </div>
         </div>
@@ -228,7 +251,7 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--primary)]">{profile.full_name}</p>
-                <p className="text-xs text-[var(--muted)]">Vous êtes l'animateur de cet atelier</p>
+                <p className="text-xs text-[var(--muted)]">Vous êtes l’animateur de cet atelier</p>
               </div>
             </div>
           )}
@@ -257,6 +280,51 @@ export default function EditAtelierForm({ atelier, profile, animateurs }: Props)
                 : <><Save className="w-4 h-4" /> Enregistrer</>}
             </button>
           </div>
+        </div>
+
+        {/* Suppression */}
+        <div className="p-6 flex flex-col gap-3">
+          <h2 className="text-xs font-semibold text-red-500 uppercase tracking-widest">Supprimer l’atelier</h2>
+          {!confirmDelete ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <p className="text-sm text-[var(--muted)]">
+                L’atelier et toutes ses réservations seront définitivement supprimés.
+              </p>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="shrink-0 py-2.5 px-4 rounded-xl border border-red-200 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" /> Supprimer
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4 flex flex-col gap-3">
+              <p className="text-sm font-medium text-red-700">
+                Supprimer définitivement « {atelier.title} » ? Cette action est irréversible.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl border border-[var(--border)] bg-white text-sm font-medium text-[var(--muted)] hover:bg-[var(--background)] transition-colors disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {deleting
+                    ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <><Trash2 className="w-4 h-4" /> Confirmer la suppression</>}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </form>
     </div>
